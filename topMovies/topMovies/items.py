@@ -14,5 +14,5 @@ class TopmoviesItem(scrapy.Item):
     name = scrapy.Field() # 电影名字
     num = scrapy.Field() # 电影排名
     year = scrapy.Field() # 电影年份
-    area = scrapy.Field() # 电影地区
-    style = scrapy.Field() # 电影类型
+    areas = scrapy.Field() # 电影地区
+    styles = scrapy.Field() # 电影类型

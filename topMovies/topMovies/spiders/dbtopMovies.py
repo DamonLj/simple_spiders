@@ -25,10 +25,13 @@ class DbtopmoviesSpider(scrapy.Spider):
         soup = BeautifulSoup(response.body.decode(response.encoding), 'lxml')
         ol = soup.ol
         for li in ol('li'):
-            movie['name'] = li('span')[0].string
-            movie['num'] = li('em')[0].string
-            info = li('div', class_='bd')[0].p.contents[-1].split('\xa0')
-            movie['year'] = info[0].strip()
-            movie['area'] = info[2]
-            movie['style'] = info[-1].strip()
-            yield movie
+            try:
+                movie['name'] = li('span')[0].string
+                movie['num'] = li('em')[0].string
+                info = li('div', class_='bd')[0].p.contents[-1].split('\xa0')
+                movie['year'] = info[0].strip()
+                movie['areas'] = info[2].split(' ')
+                movie['styles'] = info[-1].strip().split(' ')
+                yield movie
+            except:
+                continue
