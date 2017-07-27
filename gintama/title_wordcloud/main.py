@@ -18,11 +18,12 @@ class WordCloud_CN(object):
         self.stopwords_file = stopwords_file
         self.text_file = text_file
 
-    @property
+    @property  # 函数变为属性，不需要()结尾
     def get_stopwords(self):
         self.stopwords = {}
         f = open(self.stopwords_file, 'r', encoding='utf-8')
         line = f.readline().rstrip()
+        # 原stopwords文档中有一行是空格，读取到空格时会停止
         while line:
             self.stopwords.setdefault(line, 0)
             self.stopwords[line] = 1
