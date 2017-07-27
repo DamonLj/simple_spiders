@@ -4,7 +4,7 @@ import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 # matplotlib.use('qt4agg')
-from wordcloud import WordCloud
+from wordcloud import WordCloud, ImageColorGenerator
 import jieba
 
 
@@ -46,15 +46,19 @@ class WordCloud_CN(object):
 
     def produce_cloud(self):
         # wordcloud = WordCloud(max_font_size=40, relative_scaling=.5)
-        gintama_mask = np.array(Image.open(pic_file))
+        gintama_coloring = np.array(Image.open(pic_file))
         wordcloud = WordCloud(font_path=os.path.join(dirpath, 'static\simheittf\msyhl.ttc'),
-                              mask=gintama_mask, background_color='white', max_words=500)
+                              mask=gintama_coloring, max_words=600,background_color='black',
+                              scale=2, random_state=42)
         # background_color = "black", margin = 5, width = 1800, height = 800,
         self.wordcloud = wordcloud.generate(self.seg_text)
+        # 从图片建立颜色
+        image_colors = ImageColorGenerator(gintama_coloring)
+        self.wordcloud = self.wordcloud.recolor(color_func=image_colors)
 
     def show(self):
         plt.figure()
-        plt.imshow(self.wordcloud)
+        plt.imshow(self.wordcloud, interpolation='bilinear')
         plt.axis("off")
         plt.show()
 
