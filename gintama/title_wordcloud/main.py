@@ -44,20 +44,22 @@ class WordCloud_CN(object):
             self.seg_list = r' '.join(self.seg_list)
         return self.seg_list
 
-    def show(self):
+    def produce_cloud(self):
         # wordcloud = WordCloud(max_font_size=40, relative_scaling=.5)
         gintama_mask = np.array(Image.open(pic_file))
-        wordcloud = WordCloud(font_path=os.path.join(dirpath, 'static\simheittf\simhei.ttf'),
-                              mask=gintama_mask)
+        wordcloud = WordCloud(font_path=os.path.join(dirpath, 'static\simheittf\msyhl.ttc'),
+                              mask=gintama_mask, background_color='white', max_words=500)
         # background_color = "black", margin = 5, width = 1800, height = 800,
         self.wordcloud = wordcloud.generate(self.seg_text)
 
+    def show(self):
         plt.figure()
         plt.imshow(self.wordcloud)
         plt.axis("off")
         plt.show()
 
     def save(self):
+        self.produce_cloud()
         self.wordcloud.to_file(os.path.join(dirpath, "gintama_title.png"))
 
 
@@ -68,5 +70,5 @@ if __name__ == '__main__':
     pic_file = os.path.join(dirpath, 'gintama.png')
 
     generater = WordCloud_CN(stopwords_file)
-    generater.show()
+    # generater.show()
     generater.save()
