@@ -29,8 +29,16 @@ class DilidiliSpider(scrapy.Spider):
         for tr in gintamalist:
             # try 语句防止和第一页有些不一样而产生异常
             try:
-                gintama['episode'] = tr.xpath('td[1]/text()')[0].re(r'\d+')[0]
+                gintama['episode'] = tr.xpath('td[1]/text()')[0].re(r'[\d.]+')[0]
                 gintama['gintamatitle'] = tr.xpath('td[2]/a/text()').extract()[0]
                 yield gintama
             except:
                 continue
+        # 网站代码不规范，283话以后缺少<tr>标签（查看源码），下面补充283话以后
+        episode_add = response.xpath("//div[@class='series area']/table/td/text()").re(r'第([\d.]+)话')
+        title_add = name = response.xpath("//div[@class='series area']/table/td/a/text()").extract()
+        for i in range(len(episode_add)):
+            gintama['episode'] = episode_add[i]
+            gintama['gintamatitle'] = title_add[i]
+            yield gintama
+

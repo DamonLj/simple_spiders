@@ -8,7 +8,7 @@
 
 class GintamaPipeline(object):
     def open_spider(self, spider):
-        self.f = open('gintama.txt', 'w')
+        self.f = open('gintama.txt', 'w', encoding='utf8')
 
     def close_spider(self, spider):
         self.f.close()
