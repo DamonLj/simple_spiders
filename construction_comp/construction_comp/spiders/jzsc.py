@@ -5,6 +5,7 @@ import scrapy
 class JzscSpider(scrapy.Spider):
     name = "jzsc"
     allowed_domains = ["http://jzsc.mohurd.gov.cn/dataservice/query/comp/list"]
+
     def start_requests(self):
         requestlist = []
         for i in range(5):
