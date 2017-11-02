@@ -65,7 +65,8 @@ ROBOTSTXT_OBEY = True
 # Configure item pipelines
 # See http://scrapy.readthedocs.org/en/latest/topics/item-pipeline.html
 ITEM_PIPELINES = {
-   'topMovies.pipelines.Topmovies2txtPipeline': 300,
+    'topMovies.pipelines.Topmovies2jsonPipeline': 200,
+    'topMovies.pipelines.Topmovies2txtPipeline': 300,
 }
 
 # Enable and configure the AutoThrottle extension (disabled by default)
