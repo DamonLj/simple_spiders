@@ -13,5 +13,6 @@ class ConstructionCompItem(scrapy.Item):
     # name = scrapy.Field()
     name = scrapy.Field()
     adress = scrapy.Field()
-    id = scrapy.Field()
-    Certifications = scrapy.Field()
+    # id = scrapy.Field()
+    lrp = scrapy.Field()
+    certifications = scrapy.Field()
