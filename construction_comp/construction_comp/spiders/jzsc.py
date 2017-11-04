@@ -44,9 +44,9 @@ class JzscSpider(scrapy.Spider):
             print(response.url + '产生异常！！！未找到某base。')
         # request的meta参数用于传递数据，在不同的parse中返回同一个item。
         yield scrapy.Request("http://jzsc.mohurd.gov.cn" + certifications_url,
-                             callback=self.parse_certifications, headers=self.headers, meta={'item': comp})
+                             callback=self.parse_certifications, headers=self.headers, meta={'item': comp}, priority=1)
         yield scrapy.Request("http://jzsc.mohurd.gov.cn" + members_url,
-                             callback=self.parse_members, headers=self.headers, meta={'item': comp})
+                             callback=self.parse_members, headers=self.headers, meta={'item': comp}, priority=2)
 
     def parse_certifications(self, response):
         comp = response.meta['item']  # 取出传递的item
