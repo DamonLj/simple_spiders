@@ -17,3 +17,4 @@ class ConstructionCompItem(scrapy.Item):
     # id = scrapy.Field()
     lrperson = scrapy.Field()
     certifications = scrapy.Field()
+    members = scrapy.Field()

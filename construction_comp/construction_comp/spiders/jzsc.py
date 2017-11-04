@@ -29,27 +29,58 @@ class JzscSpider(scrapy.Spider):
             yield scrapy.Request(url, callback=self.parse_comp, headers=self.headers)
 
     def parse_comp(self, response):
-        self.comp = ConstructionCompItem()
+        comp = ConstructionCompItem()
         soup = BeautifulSoup(response.text, 'lxml')
-        self.comp['name'] = soup('div', class_='user_info spmtop')[0].b.contents[-1].strip()
-        # comp['name'] = response.xpath("//div[@class='user_info spmtop']/b/text()").extract()[0].strip()
-        # comp['id'] = soup('td', attrs={'data-header': '统一社会信用代码'})[0].string
-        self.comp['city'] = soup('td', attrs={'data-header': '企业注册属地'})[0].string
-        self.comp['lrperson'] = soup('td', attrs={'data-header': '企业法定代表人'})[0].string
-        self.comp['adress'] = soup('td', attrs={'data-header': '企业经营地址'})[0].string
-        certifications_url = soup('a', attrs={'data-contentid': 'apt_tabcontent'})[0].attrs['data-url']
-        yield scrapy.Request("http://jzsc.mohurd.gov.cn" + certifications_url, callback=self.parse_certifications, headers=self.headers)
+        try:
+            comp['name'] = soup('div', class_='user_info spmtop')[0].b.contents[-1].strip()
+            # comp['name'] = response.xpath("//div[@class='user_info spmtop']/b/text()").extract()[0].strip()
+            # comp['id'] = soup('td', attrs={'data-header': '统一社会信用代码'})[0].string
+            comp['city'] = soup('td', attrs={'data-header': '企业注册属地'})[0].string
+            comp['lrperson'] = soup('td', attrs={'data-header': '企业法定代表人'})[0].string
+            comp['adress'] = soup('td', attrs={'data-header': '企业经营地址'})[0].string
+            certifications_url = soup('a', attrs={'data-contentid': 'apt_tabcontent'})[0].attrs['data-url']
+            members_url = soup('a', attrs={'data-contentid': 'iframe_tab'})[0].attrs['data-url']
+        except:
+            print(response.url + '产生异常！！！未找到某base。')
+        # request的meta参数用于传递数据，在不同的parse中返回同一个item。
+        yield scrapy.Request("http://jzsc.mohurd.gov.cn" + certifications_url,
+                             callback=self.parse_certifications, headers=self.headers, meta={'item': comp})
+        yield scrapy.Request("http://jzsc.mohurd.gov.cn" + members_url,
+                             callback=self.parse_members, headers=self.headers, meta={'item': comp})
 
     def parse_certifications(self, response):
+        comp = response.meta['item']  # 取出传递的item
         certifications = {}
         soup = BeautifulSoup(response.text, 'lxml')
-        allrows = soup('tr', class_='row')
-        for row in allrows:
-            certifications_cat = row('td', attrs={'data-header': '资质类别'})[0].string
-            certifications_name = row('td', attrs={'data-header': '资质名称'})[0].string.strip()
-            if certifications_cat in certifications:
-                certifications[certifications_cat].append(certifications_name)
-            else:
-                certifications[certifications_cat] = []
-        self.comp['certifications'] = certifications
-        yield self.comp
+        try:
+            allrows = soup('tr', class_='row')
+            for row in allrows:
+                certifications_cat = row('td', attrs={'data-header': '资质类别'})[0].string.strip()
+                certifications_name = row('td', attrs={'data-header': '资质名称'})[0].string.strip()
+                if certifications_cat in certifications:
+                    certifications[certifications_cat].append(certifications_name)
+                else:
+                    certifications[certifications_cat] = []
+                    certifications[certifications_cat].append(certifications_name)
+        except:
+            print(response.url + '产生异常！！！未找到某cer。')
+        comp['certifications'] = certifications
+
+    def parse_members(self, response):
+        comp = response.meta['item']
+        members = {}
+        soup = BeautifulSoup(response.text, 'lxml')
+        try:
+            allmembers = soup('table', class_='pro_table_box pro_table_borderright')[0]('tbody')[0]('tr')
+            for member in allmembers:
+                member_cat = member('td', attrs={'data-header': '注册类别'})[0].string.strip()
+                member_name = member('td', attrs={'data-header': '姓名'})[0].a.string.strip()
+                if member_cat in members:
+                    members[member_cat].append(member_name)
+                else:
+                    members[member_cat] = []
+                    members[member_cat].append(member_name)
+        except:
+            print(response.url + '产生异常！！！未找到某member。')
+        comp['members'] = members
+        yield comp
