@@ -41,12 +41,12 @@ class JzscSpider(scrapy.Spider):
             certifications_url = soup('a', attrs={'data-contentid': 'apt_tabcontent'})[0].attrs['data-url']
             members_url = soup('a', attrs={'data-contentid': 'iframe_tab'})[0].attrs['data-url']
         except:
-            print(response.url + '产生异常！！！未找到某base。')
+            print(response.url, '产生异常！！！未找到某base。')
         # request的meta参数用于传递数据，在不同的parse中返回同一个item。
         yield scrapy.Request("http://jzsc.mohurd.gov.cn" + certifications_url,
-                             callback=self.parse_certifications, headers=self.headers, meta={'item': comp}, priority=1)
+                             callback=self.parse_certifications, headers=self.headers, meta={'item': comp}, priority=2)
         yield scrapy.Request("http://jzsc.mohurd.gov.cn" + members_url,
-                             callback=self.parse_members, headers=self.headers, meta={'item': comp}, priority=2)
+                             callback=self.parse_memberspage, headers=self.headers, meta={'item': comp}, priority=1)
 
     def parse_certifications(self, response):
         comp = response.meta['item']  # 取出传递的item
@@ -63,8 +63,23 @@ class JzscSpider(scrapy.Spider):
                     certifications[certifications_cat] = []
                     certifications[certifications_cat].append(certifications_name)
         except:
-            print(response.url + '产生异常！！！未找到某cer。')
+            print(response.url, '产生异常！！！未找到某cer。')
         comp['certifications'] = certifications
+
+    def parse_memberspage(self, response):
+        comp = response.meta['item']
+        pagebar = response.xpath("//a[@sf='pagebar']/@*")  # 直接提取不到sf:data属性，提取所有属性去最后一个
+        if pagebar:
+            page_str = pagebar[-1].extract()
+            import re
+            total = int(re.search(r'tt:(\d+),', page_str).group(1))
+            pagesize = int(re.search(r'ps:(\d+),', page_str).group(1))
+            for p in range(total // pagesize + 1):
+                yield scrapy.FormRequest(response.url, formdata={'$pg': str(p+1)}, callback=self.parse_members,
+                                         method='POST', headers=self.headers, priority=-1, meta={'item': comp})
+        else:
+            yield scrapy.Request(response.url, callback=self.parse_members, headers=self.headers, priority=-1,
+                                 meta={'item': comp})
 
     def parse_members(self, response):
         comp = response.meta['item']
@@ -81,6 +96,6 @@ class JzscSpider(scrapy.Spider):
                     members[member_cat] = []
                     members[member_cat].append(member_name)
         except:
-            print(response.url + '产生异常！！！未找到某member。')
+            print(response.url, '产生异常！！！未找到某member。')
         comp['members'] = members
         yield comp
