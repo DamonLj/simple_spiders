@@ -12,6 +12,7 @@ class JzscSpider(scrapy.Spider):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0',
     }
+    PAGESIZE = 25
 
     def start_requests(self):
         requestlist = []
@@ -41,7 +42,7 @@ class JzscSpider(scrapy.Spider):
             certifications_url = soup('a', attrs={'data-contentid': 'apt_tabcontent'})[0].attrs['data-url']
             members_url = soup('a', attrs={'data-contentid': 'iframe_tab'})[0].attrs['data-url']
         except:
-            print(response.url, '产生异常！！！未找到某base。')
+            print(response.url, '产生异常！！！未找到comp。')
         # request的meta参数用于传递数据，在不同的parse中返回同一个item。
         yield scrapy.Request("http://jzsc.mohurd.gov.cn" + certifications_url, callback=self.parse_certifications,
                              headers=self.headers, meta={'item': comp}, priority=-1)
@@ -63,7 +64,7 @@ class JzscSpider(scrapy.Spider):
                     certifications[certifications_cat] = []
                     certifications[certifications_cat].append(certifications_name)
         except:
-            print(response.url, '产生异常！！！未找到某cer。')
+            print(response.url, '产生异常！！！未找到certifications。')
         comp['certifications'] = certifications
 
     def parse_memberspage(self, response):
@@ -77,26 +78,47 @@ class JzscSpider(scrapy.Spider):
             page_str = pagebar[-1].extract()
             import re
             total = int(re.search(r'tt:(\d+),', page_str).group(1))
-            pagesize = int(re.search(r'ps:(\d+),', page_str).group(1))
-            for p in range(total // pagesize + 1):
-                yield scrapy.FormRequest(response.url, formdata={'$pg': str(p + 1)}, callback=self.parse_members,
-                                         method='POST', headers=self.headers, meta={'item': comp})
+            for p in range(total // self.PAGESIZE):
+                yield scrapy.FormRequest(response.url,
+                                         formdata={'$pg': str(p + 1)}, callback=self.parse_members_none,
+                                         method='POST', headers=self.headers, meta={'item': comp}, priority=-3)
+            yield scrapy.FormRequest(response.url,
+                                     formdata={'$pg': str(total // self.PAGESIZE + 1)}, callback=self.parse_members,
+                                     method='POST', headers=self.headers, meta={'item': comp}, priority=-4)
 
     def parse_members(self, response):
         comp = response.meta['item']
-        members = {}
+        if 'members' not in comp:
+            comp['members'] = {}
         soup = BeautifulSoup(response.text, 'lxml')
         try:
             allmembers = soup('table', class_='pro_table_box pro_table_borderright')[0]('tbody')[0]('tr')
-            for member in allmembers:
+            for member in allmembers[:self.PAGESIZE]:
                 member_cat = member('td', attrs={'data-header': '注册类别'})[0].string.strip()
                 member_name = member('td', attrs={'data-header': '姓名'})[0].a.string.strip()
-                if member_cat in members:
-                    members[member_cat].append(member_name)
+                if member_cat in comp['members']:
+                    comp['members'][member_cat].append(member_name)
                 else:
-                    members[member_cat] = []
-                    members[member_cat].append(member_name)
+                    comp['members'][member_cat] = []
+                    comp['members'][member_cat].append(member_name)
         except:
-            print(response.url, '产生异常！！！未找到某member。')
-        comp['members'] = members
+            print(response.url, '产生异常！！！未找到member。')
         yield comp
+
+    def parse_members_none(self, response):
+        comp = response.meta['item']
+        if 'members' not in comp:
+            comp['members'] = {}
+        soup = BeautifulSoup(response.text, 'lxml')
+        try:
+            allmembers = soup('table', class_='pro_table_box pro_table_borderright')[0]('tbody')[0]('tr')
+            for member in allmembers[:self.PAGESIZE]:
+                member_cat = member('td', attrs={'data-header': '注册类别'})[0].string.strip()
+                member_name = member('td', attrs={'data-header': '姓名'})[0].a.string.strip()
+                if member_cat in comp['members']:
+                    comp['members'][member_cat].append(member_name)
+                else:
+                    comp['members'][member_cat] = []
+                    comp['members'][member_cat].append(member_name)
+        except:
+            print(response.url, '产生异常！！！未找到member。')
