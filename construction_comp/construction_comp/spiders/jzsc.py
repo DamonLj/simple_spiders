@@ -67,18 +67,20 @@ class JzscSpider(scrapy.Spider):
         comp['certifications'] = certifications
 
     def parse_memberspage(self, response):
-        comp = response.meta['item']
         pagebar = response.xpath("//a[@sf='pagebar']/@*")  # 直接提取不到sf:data属性，提取所有属性去最后一个
-        if pagebar:
+        # 如果只有一页不能产生request，因为是重复的url会被过滤掉。
+        if not pagebar:
+            comp = next(self.parse_members(response))  # 用next取出parse生成器中的item，不能直接返回生成器。
+            yield comp
+        else:
+            comp = response.meta['item']
             page_str = pagebar[-1].extract()
             import re
             total = int(re.search(r'tt:(\d+),', page_str).group(1))
             pagesize = int(re.search(r'ps:(\d+),', page_str).group(1))
             for p in range(total // pagesize + 1):
-                yield scrapy.FormRequest(response.url, formdata={'$pg': str(p+1)}, callback=self.parse_members,
+                yield scrapy.FormRequest(response.url, formdata={'$pg': str(p + 1)}, callback=self.parse_members,
                                          method='POST', headers=self.headers, meta={'item': comp})
-        else:
-            yield scrapy.Request(response.url, callback=self.parse_members, headers=self.headers, meta={'item': comp})
 
     def parse_members(self, response):
         comp = response.meta['item']
