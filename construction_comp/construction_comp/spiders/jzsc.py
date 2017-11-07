@@ -12,11 +12,11 @@ class JzscSpider(scrapy.Spider):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0',
     }
-    PAGESIZE = 25
+    CRAWL_PAGE = 1  # 要抓取的总页面数
 
     def start_requests(self):
         requestlist = []
-        for i in range(1):
+        for i in range(self.CRAWL_PAGE):
             # formdata的value必须是string!
             requestlist.append(scrapy.FormRequest(r'http://jzsc.mohurd.gov.cn/dataservice/query/comp/list',
                                                   formdata={'$pg': str(i+1)}, callback=self.parse_urllist,
