@@ -12,7 +12,7 @@ class JzscSpider(scrapy.Spider):
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0',
     }
-    CRAWL_PAGE = 1  # 要抓取的总页面数
+    CRAWL_PAGE = 1  # 要抓取的总页面数 现在为 270961 // 15 + 1 = 18065
 
     def start_requests(self):
         requestlist = []
