@@ -63,8 +63,8 @@ class JzscSpider(scrapy.Spider):
                 else:
                     certifications[certifications_cat] = []
                     certifications[certifications_cat].append(certifications_name)
-        except:
-            print(response.url, '产生异常！！！未找到certifications。')
+        except IndexError:
+            print(response.url, '未找到任何certifications！！！')
         comp['certifications'] = certifications
 
     def parse_memberspage(self, response):
@@ -105,8 +105,8 @@ class JzscSpider(scrapy.Spider):
                 else:
                     comp['members'][member_cat] = []
                     comp['members'][member_cat].append(member_name)
-        except:
-            print(response.url, '产生异常！！！未找到member。')
+        except IndexError:
+            print(response.url, '未找到任何member!!!!')
         yield comp
 
     def parse_members_none(self, response):
@@ -125,8 +125,8 @@ class JzscSpider(scrapy.Spider):
                 else:
                     comp['members'][member_cat] = []
                     comp['members'][member_cat].append(member_name)
-        except:
-            print(response.url, '产生异常！！！未找到member。')
+        except IndexError:
+            print(response.url, '未找到任何member!!!!')
 
     def parse_members(self, response):
         comp = response.meta['item']
@@ -143,6 +143,6 @@ class JzscSpider(scrapy.Spider):
                 else:
                     comp['members'][member_cat] = []
                     comp['members'][member_cat].append(member_name)
-        except:
-            print(response.url, '产生异常！！！未找到member。')
+        except IndexError:
+            print(response.url, '未找到任何member!!!!')
         yield comp
