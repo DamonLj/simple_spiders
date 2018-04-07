@@ -42,11 +42,11 @@ class JzscSpider(scrapy.Spider):
             members_url = soup('a', attrs={'data-contentid': 'iframe_tab'})[0].attrs['data-url']
         except:
             print(response.url + '产生异常！！！未找到某base。')
-        # request的meta参数用于传递数据，在不同的parse中返回同一个item。
+        # request的meta参数用于传递数据，在不同的parse中返回同一个item。priority设置处理函数的优先级，数越大越优先。
         yield scrapy.Request("http://jzsc.mohurd.gov.cn" + certifications_url,
-                             callback=self.parse_certifications, headers=self.headers, meta={'item': comp}, priority=1)
+                             callback=self.parse_certifications, headers=self.headers, meta={'item': comp}, priority=2)
         yield scrapy.Request("http://jzsc.mohurd.gov.cn" + members_url,
-                             callback=self.parse_members, headers=self.headers, meta={'item': comp}, priority=2)
+                             callback=self.parse_members, headers=self.headers, meta={'item': comp}, priority=1)
 
     def parse_certifications(self, response):
         comp = response.meta['item']  # 取出传递的item
